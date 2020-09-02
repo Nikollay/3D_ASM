@@ -52,6 +52,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Arc.cs" />
+    <Compile Include="Board.cs" />
+    <Compile Include="Circle.cs" />
+    <Compile Include="Component.cs" />
+    <Compile Include="Line.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
