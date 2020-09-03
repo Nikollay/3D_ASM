@@ -8,7 +8,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.IO;
 
-namespace _3D_ASM
+namespace ASM_3D
 {
     class Program
     {
@@ -27,8 +27,8 @@ namespace _3D_ASM
 
             string[] line = File.ReadAllLines(filename, System.Text.Encoding.GetEncoding(1251));
             List<string> list = new List<string>(line);
-            Console.WriteLine(line.Length);
             Board board;
+            Point point;
             board = new Board();
             int board_outline_start=0, drilled_holes_start=0, placement_start=0, board_outline_end=0, drilled_holes_end=0, placement_end=0;
 
@@ -36,8 +36,7 @@ namespace _3D_ASM
             List<string> drilled_holes;
             List<string> placement;
             string[] strSplit;
-            Console.WriteLine(list.Count);
-
+            
             for (int i = 0; i < list.Count; i++)
             {
                 if (list[i].ToUpper().Contains(".BOARD_OUTLINE UNOWNED")) { board_outline_start=i; }
@@ -51,21 +50,84 @@ namespace _3D_ASM
             board_outline = list.GetRange(board_outline_start + 1, board_outline_end-board_outline_start-1);
             drilled_holes= list.GetRange(drilled_holes_start + 1, drilled_holes_end - drilled_holes_start-1);
             placement= list.GetRange(placement_start + 1, placement_end - placement_start-1);
+            
+            board.thickness = float.Parse(board_outline[0].Replace(".", ","));
+            board_outline.RemoveAt(0);
 
-            board.thickness = double.Parse(board_outline[0]);
 
-            for (int i = 1; i < board_outline.Count; i++)
+            board.point = new List<Point>();
+            for (int i = 0; i < board_outline.Count; i++)
             {
+                point = new Point();
                 strSplit = board_outline[i].Split((char)32);
-                if (strSplit[3] == "0.0000")
+                point.x = float.Parse(strSplit[1].Replace(".", ","))/1000;
+                point.y = float.Parse(strSplit[2].Replace(".", ","))/1000;
+                point.angle = float.Parse(strSplit[3].Replace(".", ","));
+                board.point.Add(point);
+            }
+
+            //SolidWorks
+            Console.WriteLine("Подключение к SldWorks.Application");
+            var progId = "SldWorks.Application.27";
+            var progType = System.Type.GetTypeFromProgID(progId);
+            var swApp = System.Activator.CreateInstance(progType) as ISldWorks;
+            swApp.Visible = true;
+            Console.WriteLine("Успешное подключение к версии SldWorks.Application " + swApp.RevisionNumber());
+            Console.WriteLine(DateTime.Now.ToString());
+            Console.CursorSize = 100;
+            ModelDoc2 swModel;
+            AssemblyDoc swAssy;
+
+
+            //Новая сборка платы
+            double swSheetWidth=0, swSheetHeight=0;
+            string boardName;
+            int Errors=0, Warnings=0;
+            swAssy = (AssemblyDoc)swApp.NewDocument("D:\\PDM\\EPDM_LIBRARY\\EPDM_SolidWorks\\EPDM_SWR_Templates\\Модуль_печатной_платы.asmdot", (int)swDwgPaperSizes_e.swDwgPaperA2size, swSheetWidth, swSheetHeight);
+            swModel = (ModelDoc2)swAssy;
+            //Сохранение
+            boardName = filename.Remove(filename.Length-3) + "SLDASM";
+            Console.WriteLine(boardName);
+            swModel.Extension.SaveAs(boardName, (int)swSaveAsVersion_e.swSaveAsCurrentVersion, (int)swSaveAsOptions_e.swSaveAsOptions_UpdateInactiveViews, null, ref Errors, ref Warnings);
+            //**********
+
+            //Доска
+            Component2 board_body;
+            PartDoc part;
+            ModelDoc2 swCompModel;
+            Feature swRefPlaneFeat, plane;
+            swAssy.InsertNewVirtualPart(null, out board_body);
+            board_body.Select4(false, null, false);
+            swAssy.EditPart();
+            swCompModel = (ModelDoc2)board_body.GetModelDoc2();
+            part = (PartDoc)swCompModel;
+            part.SetMaterialPropertyName2("-00", "гост материалы.sldmat", "Rogers 4003C");
+
+            int j = 1;
+            do
                 {
-                    Line l = new Line();
-                    l.x1 = double.Parse(strSplit[1]);
-                    l.x2 = double.Parse(strSplit[2]);
-                    board.lines.Add(l);
+                swRefPlaneFeat = (Feature)swCompModel.FeatureByPositionReverse(j);
+                j = j + 1;
                 }
-                else { };
-            }    
+            while (swRefPlaneFeat.Name != "Спереди");
+
+            plane = (Feature)board_body.GetCorresponding(swRefPlaneFeat);
+            plane.Select2(false, -1);
+
+            swModel.SketchManager.InsertSketch(false);
+            swModel.SketchManager.AddToDB = true;
+
+            foreach (Point p in board.point)
+            {
+                //Console.WriteLine(p.x +(char)32+ p.y);
+                Console.WriteLine(p.x);
+                Console.WriteLine(p.y);
+                swModel.SketchManager.CreatePoint(p.x, p.y, 0);
+            }
+            swModel.ClearSelection2(true);
+            swAssy.HideComponent();
+            swAssy.ShowComponent();
+            swAssy.EditAssembly();
 
 
 
@@ -73,7 +135,7 @@ namespace _3D_ASM
                 //for (int i = 0; i < drilled_holes.Count; i++) { Console.WriteLine(drilled_holes[i]); }
                 //for (int i = 0; i < placement.Count; i++) { Console.WriteLine(placement[i]); }
 
-                Console.ReadKey();
+            Console.ReadKey();
             
         }
     }

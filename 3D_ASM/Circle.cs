@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace _3D_ASM
+namespace ASM_3D
 {
     class Circle
     {
-        public double xc, yc, radius;
+        public float xc, yc, radius;
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace _3D_ASM
+namespace ASM_3D
 {
     class Component
     {

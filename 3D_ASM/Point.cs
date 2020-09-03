@@ -4,11 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace _3D_ASM
+namespace ASM_3D
 {
-    class Arc
+    class Point
     {
-        public double x1, x2, y1, y2, xc, yc;
-        public int direction;
+        public double x, y, angle;
     }
 }
