@@ -29,6 +29,8 @@ namespace ASM_3D
             List<string> list = new List<string>(line);
             Board board;
             Point point;
+            Circle circle;
+            Component component;
             board = new Board();
             int board_outline_start=0, drilled_holes_start=0, placement_start=0, board_outline_end=0, drilled_holes_end=0, placement_end=0;
 
@@ -50,8 +52,8 @@ namespace ASM_3D
             board_outline = list.GetRange(board_outline_start + 1, board_outline_end-board_outline_start-1);
             drilled_holes= list.GetRange(drilled_holes_start + 1, drilled_holes_end - drilled_holes_start-1);
             placement= list.GetRange(placement_start + 1, placement_end - placement_start-1);
-            
-            board.thickness = float.Parse(board_outline[0].Replace(".", ","));
+            //for (int i = 0; i < placement.Count; i++) { Console.WriteLine(placement[i]); }
+            board.thickness = double.Parse(board_outline[0].Replace(".", ","))/1000;
             board_outline.RemoveAt(0);
 
 
@@ -65,6 +67,45 @@ namespace ASM_3D
                 point.angle = float.Parse(strSplit[3].Replace(".", ","));
                 board.point.Add(point);
             }
+
+            board.circles = new List<Circle>();
+            for (int i = 0; i < drilled_holes.Count; i++)
+            {
+                circle = new Circle();
+                strSplit = drilled_holes[i].Split((char)32);
+                circle.xc = float.Parse(strSplit[1].Replace(".", ",")) / 1000;
+                circle.yc = float.Parse(strSplit[2].Replace(".", ",")) / 1000;
+                circle.radius = float.Parse(strSplit[0].Replace(".", ","))/2000;
+                if (!strSplit[5].Contains("VIA")) { board.circles.Add(circle); }
+            }
+
+            board.components = new List<Component>();
+            for (int i = 0; i < placement.Count; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    component = new Component();
+                    strSplit = placement[i].Split((char)32);
+                    component.footprint = strSplit[0];
+                    component.physicalDesignator = strSplit[strSplit.Length - 1];
+                    component.part_Number = placement[i].Replace(component.footprint, "");
+                    component.part_Number = component.part_Number.Replace(component.physicalDesignator, "");
+                    component.part_Number = component.part_Number.Trim().Trim('\"');
+
+                    strSplit = placement[i+1].Split((char)32);
+                    component.x = float.Parse(strSplit[0].Replace(".", ",")) / 1000;
+                    component.y = float.Parse(strSplit[1].Replace(".", ",")) / 1000;
+                    component.z = 0;
+                    component.standOff = float.Parse(strSplit[2].Replace(".", ",")) / 1000;
+                    component.rotation = float.Parse(strSplit[3].Replace(".", ","));
+                    board.components.Add(component);
+                    //Console.WriteLine(component.part_Number);
+                    //Console.WriteLine(component.x);
+                    //Console.WriteLine(component.y);
+                    //Console.WriteLine(component.rotation);
+                }
+            }
+            //Console.ReadKey();
 
             //SolidWorks
             Console.WriteLine("Подключение к SldWorks.Application");
@@ -117,13 +158,25 @@ namespace ASM_3D
             swModel.SketchManager.InsertSketch(false);
             swModel.SketchManager.AddToDB = true;
 
-            foreach (Point p in board.point)
+
+            for (int i = 1; i < board.point.Count; i++)
             {
-                //Console.WriteLine(p.x +(char)32+ p.y);
-                Console.WriteLine(p.x);
-                Console.WriteLine(p.y);
-                swModel.SketchManager.CreatePoint(p.x, p.y, 0);
+               swModel.SketchManager.CreateLine(board.point[i-1].x, board.point[i-1].y, 0, board.point[i].x, board.point[i].y, 0);
             }
+            swModel.FeatureManager.FeatureExtrusion3(true, false, false, 0, 0, board.thickness, board.thickness, false, false, false, false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
+
+            //foreach (Circle c in board.circles)
+            //{
+            //    swModel.SketchManager.CreateCircleByRadius(c.xc, c.yc, 0, c.radius);
+            //}
+            //swModel.FeatureManager.FeatureCut3(true, false, true, 1, 0, board.thickness, board.thickness, false, false, false, false, 1.74532925199433E-02, 1.74532925199433E-02, false, false, false, false, false, true, true, true, true, false, 0, 0, false);
+                //    foreach (Point p in board.point)
+                //{
+                //    Console.WriteLine(p.x);
+                //    Console.WriteLine(p.y);
+                //    swModel.SketchManager.CreatePoint(p.x, p.y, 0);
+                //}
+
             swModel.ClearSelection2(true);
             swAssy.HideComponent();
             swAssy.ShowComponent();
@@ -131,12 +184,40 @@ namespace ASM_3D
 
 
 
-                //for (int i = 0; i < board_outline.Count; i++) { Console.WriteLine(board_outline[i]); }
-                //for (int i = 0; i < drilled_holes.Count; i++) { Console.WriteLine(drilled_holes[i]); }
-                //for (int i = 0; i < placement.Count; i++) { Console.WriteLine(placement[i]); }
+            //for (int i = 0; i < board_outline.Count; i++) { Console.WriteLine(board_outline[i]); }
+            //for (int i = 0; i < drilled_holes.Count; i++) { Console.WriteLine(drilled_holes[i]); }
+            //for (int i = 0; i < placement.Count; i++) { Console.WriteLine(placement[i]); }
 
+            // Console.ReadKey();
+            List<string> allFoundFiles = new List<string>(Directory.GetFiles("D:\\PDM\\Прочие изделия\\ЭРИ", "*.*", SearchOption.AllDirectories));
+
+            foreach (Component comp in board.components)
+            {
+                comp.fileName = allFoundFiles.Find(item => item.Contains(comp.part_Number));
+                if (String.IsNullOrWhiteSpace(comp.fileName)) { comp.fileName = "D:\\PDM\\Прочие изделия\\ЭРИ\\Zero.SLDPRT"; }
+                Console.WriteLine(comp.fileName);
+            }
             Console.ReadKey();
-            
+
+
+
+            double[] transforms;
+            string[] coordSys, names;
+            names = new string[board.components.Count];
+            coordSys = new string[board.components.Count];
+            transforms = new double[board.components.Count-1];
+
+            for (int i = 1; i < board.components.Count; i++)
+            {
+                names[i] = board.components[i].fileName;
+                coordSys[i] = "";
+            }
+
+            foreach (Component comp in board.components)
+            {
+
+            }
         }
+
     }
 }

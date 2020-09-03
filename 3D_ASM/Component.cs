@@ -10,6 +10,6 @@ namespace ASM_3D
     {
         public int layer;
         public double x, y, z, rotation, standOff;
-        public string physicalDesignator, title, part_Number, fileName;
+        public string physicalDesignator, footprint, part_Number, fileName;
     }
 }

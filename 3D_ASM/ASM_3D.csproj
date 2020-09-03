@@ -53,7 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Point.cs" />
-    <Compile Include="Sketch.cs" />
     <Compile Include="Board.cs" />
     <Compile Include="Circle.cs" />
     <Compile Include="Component.cs" />

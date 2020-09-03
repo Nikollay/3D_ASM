@@ -8,7 +8,7 @@ namespace ASM_3D
 {
     class Board
     {
-        public List<Sketch> sketch;
+        public List<Component> components;
         public List<Circle> circles;
         public List<Point> point;
         public double thickness;
