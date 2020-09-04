@@ -95,7 +95,7 @@ namespace ASM_3D
                     strSplit = placement[i + 1].Split((char)32);
                     component.x = float.Parse(strSplit[0].Replace(".", ",")) / 1000;
                     component.y = float.Parse(strSplit[1].Replace(".", ",")) / 1000;
-                    component.z = 0;
+                    component.z = board.thickness;
                     component.standOff = float.Parse(strSplit[2].Replace(".", ",")) / 1000;
                     component.rotation = float.Parse(strSplit[3].Replace(".", ","));
                     switch (strSplit[4])
@@ -174,17 +174,17 @@ namespace ASM_3D
             }
             swModel.FeatureManager.FeatureExtrusion3(true, false, false, 0, 0, board.thickness, board.thickness, false, false, false, false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
 
-            //foreach (Circle c in board.circles)
-            //{
-            //    swModel.SketchManager.CreateCircleByRadius(c.xc, c.yc, 0, c.radius);
-            //}
-            //swModel.FeatureManager.FeatureCut3(true, false, true, 1, 0, board.thickness, board.thickness, false, false, false, false, 1.74532925199433E-02, 1.74532925199433E-02, false, false, false, false, false, true, true, true, true, false, 0, 0, false);
-            //    foreach (Point p in board.point)
-            //{
-            //    Console.WriteLine(p.x);
-            //    Console.WriteLine(p.y);
-            //    swModel.SketchManager.CreatePoint(p.x, p.y, 0);
-            //}
+            foreach (Circle c in board.circles)
+            {
+                swModel.SketchManager.CreateCircleByRadius(c.xc, c.yc, 0, c.radius);
+            }
+            swModel.FeatureManager.FeatureCut3(true, false, true, 1, 0, board.thickness, board.thickness, false, false, false, false, 1.74532925199433E-02, 1.74532925199433E-02, false, false, false, false, false, true, true, true, true, false, 0, 0, false);
+            foreach (Point p in board.point)
+            {
+                Console.WriteLine(p.x);
+                Console.WriteLine(p.y);
+                swModel.SketchManager.CreatePoint(p.x, p.y, 0);
+            }
 
             swModel.ClearSelection2(true);
             swAssy.HideComponent();
@@ -204,12 +204,8 @@ namespace ASM_3D
             {
                 comp.fileName = allFoundFiles.Find(item => item.Contains(comp.part_Number));
                 if (String.IsNullOrWhiteSpace(comp.fileName)) { comp.fileName = "D:\\PDM\\Прочие изделия\\ЭРИ\\Zero.SLDPRT"; }
-                //Console.WriteLine(comp.fileName);
             }
-            //Console.ReadKey();
-
-
-
+          
             double[] transforms, dMatrix;
             string[] coordSys, names;
             double alfa, beta, gamma, x, y, z;
@@ -218,11 +214,9 @@ namespace ASM_3D
             dMatrix = new double[16];
             transforms = new double[board.components.Count*16];
 
-
             for (int i = 0; i < board.components.Count; i++)
             {
-                names[i] = "D:\\PDM\\Прочие изделия\\ЭРИ\\Zero.SLDPRT"; // board.components[i].fileName;
-                coordSys[i] = "";
+                names[i] = board.components[i].fileName;
             }
             int n = 0;
             foreach (Component comp in board.components)
@@ -242,45 +236,23 @@ namespace ASM_3D
                 }
                 gamma = -(comp.rotation / 180) * Math.PI;
 
-
-
-                dMatrix[0] =1;
-                dMatrix[1] = 0;
-                dMatrix[2] =0 ; //1 строка матрицы вращения
-                dMatrix[3] = 0;
-                dMatrix[4] = 1;
-                dMatrix[5] = 0; //2 строка матрицы вращения
-                dMatrix[6] = 0;
-                dMatrix[7] = 0;
-                dMatrix[8] =1; //3 строка матрицы вращения
-                dMatrix[9] = 0; dMatrix[10] = 0; dMatrix[11] = 0; //Координаты
+                dMatrix[0] = Math.Cos(alfa) * Math.Cos(gamma) - Math.Sin(alfa) * Math.Cos(beta) * Math.Sin(gamma);
+                dMatrix[1] = -Math.Cos(alfa) * Math.Sin(gamma) - Math.Sin(alfa) * Math.Cos(beta) * Math.Cos(gamma);
+                dMatrix[2] = Math.Sin(alfa) * Math.Sin(beta); //1 строка матрицы вращения
+                dMatrix[3] = Math.Sin(alfa) * Math.Cos(gamma) + Math.Cos(alfa) * Math.Cos(beta) * Math.Sin(gamma);
+                dMatrix[4] = -Math.Sin(alfa) * Math.Sin(gamma) + Math.Cos(alfa) * Math.Cos(beta) * Math.Cos(gamma);
+                dMatrix[5] = -Math.Cos(alfa) * Math.Sin(beta); //2 строка матрицы вращения
+                dMatrix[6] = Math.Sin(beta) * Math.Sin(gamma);
+                dMatrix[7] = Math.Sin(beta) * Math.Cos(gamma);
+                dMatrix[8] = Math.Cos(beta); //3 строка матрицы вращения
+                dMatrix[9] = x; dMatrix[10] = y; dMatrix[11] = z; //Координаты
                 dMatrix[12] = 1; //Масштаб
                 dMatrix[13] = 0; dMatrix[14] = 0; dMatrix[15] = 0; //Ничего
-
-
-                //dMatrix[0] = Math.Cos(alfa) * Math.Cos(gamma) - Math.Sin(alfa) * Math.Cos(beta) * Math.Sin(gamma);
-                //dMatrix[1] = -Math.Cos(alfa) * Math.Sin(gamma) - Math.Sin(alfa) * Math.Cos(beta) * Math.Cos(gamma);
-                //dMatrix[2] = Math.Sin(alfa) * Math.Sin(beta); //1 строка матрицы вращения
-                //dMatrix[3] = Math.Sin(alfa) * Math.Cos(gamma) + Math.Cos(alfa) * Math.Cos(beta) * Math.Sin(gamma);
-                //dMatrix[4] = -Math.Sin(alfa) * Math.Sin(gamma) + Math.Cos(alfa) * Math.Cos(beta) * Math.Cos(gamma);
-                //dMatrix[5] = -Math.Cos(alfa) * Math.Sin(beta); //2 строка матрицы вращения
-                //dMatrix[6] = Math.Sin(beta) * Math.Sin(gamma);
-                //dMatrix[7] = Math.Sin(beta) * Math.Cos(gamma);
-                //dMatrix[8] = Math.Cos(beta); //3 строка матрицы вращения
-                //dMatrix[9] = x; dMatrix[10] = y; dMatrix[11] = z; //Координаты
-                //dMatrix[12] = 1; //Масштаб
-                //dMatrix[13] = 0; dMatrix[14] = 0; dMatrix[15] = 0; //Ничего
 
                 for (int k = 0; k < dMatrix.Length; k++) { transforms[n * 16 + k] = dMatrix[k]; }
                 n++;
             }
-            Console.WriteLine(transforms.Length);
-            Console.WriteLine(names.Length);
-            Console.WriteLine(coordSys.Length);
-            Console.WriteLine("*******************************");
-            for (int i = 0; i < coordSys.Length; i++) { Console.WriteLine(names[i]); }  // { Console.WriteLine( String.IsNullOrWhiteSpace(coordSys[i])); }
-            Console.WriteLine("*******************************");
-            Console.ReadKey();
+            
             //Вставка
             swAssy.AddComponents3((names), (transforms), (coordSys));
 
