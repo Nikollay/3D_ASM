@@ -17,14 +17,18 @@ namespace ASM_3D
         {
             string filename;
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.InitialDirectory = "D:\\1";
-            fileDialog.Filter = "brd files (*.brd)|*.brd";
+            fileDialog.InitialDirectory = "D:\\Домашняя работа";
+            fileDialog.Filter = "brd files (*.brd)|*.brd|xml files (*.xml)|*.xml";
+            fileDialog.FilterIndex = 2;
             fileDialog.RestoreDirectory = true;
             fileDialog.Title = "Открыть файл";
             fileDialog.ShowDialog();
             filename = fileDialog.FileName;
+            if (String.IsNullOrWhiteSpace(filename)) {return;}
             Console.WriteLine(filename);
 
+            GetInXML(filename);
+            Console.ReadKey();
             string[] line = File.ReadAllLines(filename, System.Text.Encoding.GetEncoding(1251));
             List<string> list = new List<string>(line);
             Board board;
@@ -286,5 +290,43 @@ namespace ASM_3D
             }      
             //**************
         }
+        static Board GetInXML(string filename)
+        {
+            XDocument doc_out, doc = XDocument.Load(filename);
+            doc_out = new XDocument();
+            IEnumerable<XElement> elements2, elements1 = doc.Root.Element("transactions").Element("transaction").Element("document").Element("configuration").Element("references").Elements();
+            XAttribute a1,a2;
+            Board board = new Board();
+            board.components = new List<Component>();
+            XElement componentXML, atribute, XML;
+            Component component;
+            XML = new XElement("XML");
+            doc_out.Add(XML);
+            foreach (XElement e1 in elements1)
+                {
+                //Console.WriteLine("{0} {1}", e1.FirstAttribute.Name, e1.FirstAttribute.Value);
+                elements2 =e1.Element("configuration").Elements();
+                componentXML = new XElement("componentXML",new XAttribute(e1.FirstAttribute.Name, e1.FirstAttribute.Value));
+                //component = new Component();
+                
+                    foreach (XElement e2 in elements2)
+                    {
+                    a1 = e2.Attribute("name");
+                    a2 = e2.Attribute("value");
+                    atribute = new XElement("attribute", a1, a2);
+                    componentXML.Add(atribute);
+                    //Console.WriteLine("{0} {1}",a1.Value, a2.Value);
+                    }
+                XML.Add(componentXML);
+                
+            }
+
+
+            Console.WriteLine(doc_out);
+            doc_out.Save("d:\\1\\test.xml");
+            return board;
+        }
+
+
     }
 }
