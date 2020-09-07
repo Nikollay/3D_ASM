@@ -184,6 +184,7 @@ namespace ASM_3D
                 //swModel.SketchManager.CreateLine(board.point[i - 1].x, board.point[i - 1].y, 0, board.point[i].x, board.point[i].y, 0);
             }
             swModel.FeatureManager.FeatureExtrusion3(true, false, false, 0, 0, board.thickness, board.thickness, false, false, false, false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
+            swModel.SketchManager.AddToDB = true;
             foreach (Circle c in board.circles)
             {
                 swModel.SketchManager.CreateCircleByRadius(c.xc, c.yc, 0, c.radius);
