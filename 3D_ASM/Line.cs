@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace ASM_3D
 {
-    class Circle
+    class Line
     {
-        public double xc, yc, radius;
+        public double x1, x2, y1, y2;
     }
 }

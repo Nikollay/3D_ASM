@@ -11,6 +11,8 @@ namespace ASM_3D
         public List<Component> components;
         public List<Circle> circles;
         public List<Point> point;
+        public List<Object> sketh, cutout;
+
         public double thickness;
     }
 }

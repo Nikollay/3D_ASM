@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace ASM_3D
 {
-    class Circle
+    class Arc
     {
-        public double xc, yc, radius;
+        public short direction=1;
+        public double xc, yc, x1, x2, y1, y2;
     }
 }
