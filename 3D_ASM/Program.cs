@@ -15,6 +15,8 @@ namespace ASM_3D
         [STAThread]
         static void Main(string[] args)
         {
+
+
             string filename;
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.InitialDirectory = "D:\\Домашняя работа";
@@ -39,7 +41,7 @@ namespace ASM_3D
             board=GetfromXML(GetXML(filename));
 
 
-            
+
             //int board_outline_start = 0, drilled_holes_start = 0, placement_start = 0, board_outline_end = 0, drilled_holes_end = 0, placement_end = 0;
 
             //List<string> board_outline;
@@ -125,18 +127,28 @@ namespace ASM_3D
             //Console.ReadKey();
 
             //SolidWorks
-            Console.WriteLine("Подключение к SldWorks.Application");
-            var progId = "SldWorks.Application.27";
-            var progType = System.Type.GetTypeFromProgID(progId);
-            var swApp = System.Activator.CreateInstance(progType) as ISldWorks;
-            swApp.Visible = true;
-            Console.WriteLine("Успешное подключение к версии SldWorks.Application " + swApp.RevisionNumber());
-            Console.WriteLine(DateTime.Now.ToString());
-            Console.CursorSize = 100;
+
+            SldWorks swApp;
+
+            swApp = new SldWorks();
+
+            //Консоль
+            //Console.WriteLine("Подключение к SldWorks.Application");
+            //var progId = "SldWorks.Application.27";
+            //var progType = System.Type.GetTypeFromProgID(progId);
+            //var swApp = System.Activator.CreateInstance(progType) as ISldWorks;
+            //swApp.Visible = true;
+            //Console.WriteLine("Успешное подключение к версии SldWorks.Application " + swApp.RevisionNumber());
+            //Console.WriteLine(DateTime.Now.ToString());
+            //Console.CursorSize = 100;
+
+
             ModelDoc2 swModel;
             AssemblyDoc swAssy;
+            ModelView activeModelView;
 
 
+           
             //Новая сборка платы
             double swSheetWidth = 0, swSheetHeight = 0;
             string boardName;
@@ -148,7 +160,7 @@ namespace ASM_3D
             Console.WriteLine(boardName);
             swModel.Extension.SaveAs(boardName, (int)swSaveAsVersion_e.swSaveAsCurrentVersion, (int)swSaveAsOptions_e.swSaveAsOptions_UpdateInactiveViews, null, ref Errors, ref Warnings);
             //**********
-
+            
             //Доска
             Component2 board_body;
             PartDoc part;
@@ -175,6 +187,7 @@ namespace ASM_3D
             swModel.SketchManager.InsertSketch(false);
             swModel.SketchManager.AddToDB = true;
 
+            
             //Эскизы
             //for (int i = 1; i < board.point.Count; i++)
             foreach (Object skt in board.sketh)
@@ -184,12 +197,21 @@ namespace ASM_3D
                 //swModel.SketchManager.CreateLine(board.point[i - 1].x, board.point[i - 1].y, 0, board.point[i].x, board.point[i].y, 0);
             }
             swModel.FeatureManager.FeatureExtrusion3(true, false, false, 0, 0, board.thickness, board.thickness, false, false, false, false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
+            swModel.ClearSelection2(true);
+
+            plane.Select2(false, -1);
+            swModel.SketchManager.InsertSketch(false);
             swModel.SketchManager.AddToDB = true;
+            swModel.SketchManager.DisplayWhenAdded = false;
             foreach (Circle c in board.circles)
             {
                 swModel.SketchManager.CreateCircleByRadius(c.xc, c.yc, 0, c.radius);
             }
             swModel.FeatureManager.FeatureCut3(true, false, true, 1, 0, board.thickness, board.thickness, false, false, false, false, 1.74532925199433E-02, 1.74532925199433E-02, false, false, false, false, false, true, true, true, true, false, 0, 0, false);
+
+            swAssy.HideComponent();
+            swAssy.ShowComponent();
+            
             //foreach (Point p in board.point)
             //{
             //    Console.WriteLine(p.x);
@@ -198,8 +220,6 @@ namespace ASM_3D
             //}
 
             swModel.ClearSelection2(true);
-            swAssy.HideComponent();
-            swAssy.ShowComponent();
             swAssy.EditAssembly();
 
             //for (int i = 0; i < board_outline.Count; i++) { Console.WriteLine(board_outline[i]); }
@@ -269,13 +289,17 @@ namespace ASM_3D
             swModel.Extension.SelectAll();
             swAssy.FixComponent();
             swModel.ClearSelection2(true);
+
+            activeModelView = (ModelView)swModel.ActiveView;
+            activeModelView.DisplayMode = (int)swViewDisplayMode_e.swViewDisplayMode_ShadedWithEdges;
+            //swApp.GetUserPreferenceToggle((int)swViewDisplayMode_e.swViewDisplayMode_ShadedWithEdges);
             //****************************
             //Заполнение поз. обозначений
             List<Component2> compsColl = new List<Component2>(); //Коллекция из компонентов сборки платы
             object[] tree = (object[])swModel.FeatureManager.GetFeatures(true); //Получаем дерево
             Feature featureTemp;
             Component2 compTemp;
-
+            
             for (int i = 0; i < tree.Length; i++)
             {
                 featureTemp = (Feature)tree[i];
@@ -286,15 +310,18 @@ namespace ASM_3D
                 }
             }
 
-            compsColl[0].Name2 = "Плата"; //Пререименовываем деталь
-            Console.WriteLine("{0} = {1}", compsColl.Count, board.components.Count);
-            Console.ReadKey();
-            if (compsColl.Count-1 == board.components.Count) //Проверка чтобы не сбились поз. обозначения, если появятся значит все правильно иначе они не нужны
+
+            compsColl[0].Name2 = "Плата"; //Пререименовываем деталь      
+            if (compsColl.Count - 1 == board.components.Count) //Проверка чтобы не сбились поз. обозначения, если появятся значит все правильно иначе они не нужны
             {
                 for (int i = 0; i < board.components.Count; i++)
-                    compsColl[i].ComponentReference = board.components[i].physicalDesignator; //Заполняем поз. обозначениями
-            }      
+                    compsColl[i + 1].ComponentReference = board.components[i].physicalDesignator; //Заполняем поз. обозначениями
+            }
             //**************
+            //swApp.ExitApp();
+            //swApp = null;
+
+
         }
         static XDocument GetXML(string filename)
         {
