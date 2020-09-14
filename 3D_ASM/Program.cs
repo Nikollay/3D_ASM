@@ -17,7 +17,8 @@ namespace ASM_3D
               
             Board board;
             string filename;
-            
+            Board.GetXML2("d:\\Домашняя работа\\ПАКБ.468179.801_2.xml");
+            Console.ReadKey();
 
             //SolidWorks
             Console.WriteLine("Подключение к SldWorks.Application");

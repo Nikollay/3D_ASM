@@ -56,6 +56,57 @@ namespace ASM_3D
             //doc_out.Save("d:\\1\\test.xml");
             return doc_out;
         }
+        public static XDocument GetXML2(string filename)
+        {
+            string descriptionPCB = "";
+            string comnpName = "";
+            XAttribute a1, a2;
+            XDocument doc_out, doc = XDocument.Load(filename);
+            XElement componentXML, atribute, XML;
+            IEnumerable<XElement> elements, elements2;
+            doc_out = new XDocument();
+            XML = new XElement("XML");
+            doc_out.Add(XML);
+            elements = doc.Root.Element("transaction").Element("project").Element("configurations").Element("configuration").Element("graphs").Elements();
+            foreach (XElement e in elements)
+            {
+                if (e.Attribute("name").Value.Equals("Обозначение PCB")) { descriptionPCB = e.Attribute("value").Value; }
+            }
+            componentXML = new XElement("componentXML", new XAttribute("AD_ID", descriptionPCB));
+            elements = doc.Root.Element("transaction").Element("project").Element("configurations").Element("configuration").Element("componentsPCB").Element("component_pcb").Element("properties").Elements();
+            foreach (XElement e in elements)
+            {
+                    a1 = e.Attribute("name");
+                    a2 = e.Attribute("value");
+                    //if (a1.Value == "Раздел_Сп" | a1.Value == "Fitted" | a1.Value == "GUID") { continue; }
+                    atribute = new XElement("attribute", a1, a2);
+                    componentXML.Add(atribute);
+            }
+            XML.Add(componentXML);
+            Console.WriteLine(doc_out);
+            elements = doc.Root.Element("transaction").Element("project").Element("configurations").Element("configuration").Element("components").Elements();
+
+            foreach (XElement e in elements)
+            {
+                elements2 = e.Element("properties").Elements();
+                foreach (XElement e2 in elements2)
+                {
+                    if (e2.Attribute("name").Value.Equals("Наименование")) { comnpName = e2.Attribute("value").Value; }
+                }
+                componentXML = new XElement("componentXML", new XAttribute("ID", comnpName));
+                foreach (XElement e2 in elements2)
+                {
+                    atribute = new XElement("attribute", e2.Attribute("name"), e2.Attribute("value"));
+                    componentXML.Add(atribute);
+                }
+                XML.Add(componentXML);
+            }
+
+            Console.WriteLine("doc_out");
+            Console.WriteLine(doc_out);
+            //doc_out.Save("d:\\1\\test.xml");
+            return doc_out;
+        }
         private static Component GetfromXElement(XElement el)
         {
             IEnumerable<XElement> elements = el.Elements();
