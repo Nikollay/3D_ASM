@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace ASM_3D
 {
@@ -62,16 +63,14 @@ namespace ASM_3D
             string comnpName = "";
             XAttribute a1, a2;
             XDocument doc_out, doc = XDocument.Load(filename);
-            XElement componentXML, atribute, XML;
+            XElement componentXML, atribute, XML, tmpXEl;
             IEnumerable<XElement> elements, elements2;
             doc_out = new XDocument();
             XML = new XElement("XML");
             doc_out.Add(XML);
             elements = doc.Root.Element("transaction").Element("project").Element("configurations").Element("configuration").Element("graphs").Elements();
-            foreach (XElement e in elements)
-            {
-                if (e.Attribute("name").Value.Equals("Обозначение PCB")) { descriptionPCB = e.Attribute("value").Value; }
-            }
+            tmpXEl = elements.First(item => item.Attribute("name").Value.Equals("Обозначение PCB"));
+            descriptionPCB = tmpXEl.Attribute("value").Value;
             componentXML = new XElement("componentXML", new XAttribute("AD_ID", descriptionPCB));
             elements = doc.Root.Element("transaction").Element("project").Element("configurations").Element("configuration").Element("componentsPCB").Element("component_pcb").Element("properties").Elements();
             foreach (XElement e in elements)
@@ -85,14 +84,11 @@ namespace ASM_3D
             XML.Add(componentXML);
             Console.WriteLine(doc_out);
             elements = doc.Root.Element("transaction").Element("project").Element("configurations").Element("configuration").Element("components").Elements();
-
             foreach (XElement e in elements)
             {
                 elements2 = e.Element("properties").Elements();
-                foreach (XElement e2 in elements2)
-                {
-                    if (e2.Attribute("name").Value.Equals("Наименование")) { comnpName = e2.Attribute("value").Value; }
-                }
+                tmpXEl = elements2.First(item => item.Attribute("name").Value.Equals("Наименование"));
+                comnpName = tmpXEl.Attribute("value").Value;
                 componentXML = new XElement("componentXML", new XAttribute("ID", comnpName));
                 foreach (XElement e2 in elements2)
                 {
@@ -101,7 +97,6 @@ namespace ASM_3D
                 }
                 XML.Add(componentXML);
             }
-
             Console.WriteLine("doc_out");
             Console.WriteLine(doc_out);
             //doc_out.Save("d:\\1\\test.xml");
