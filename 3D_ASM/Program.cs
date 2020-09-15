@@ -102,17 +102,19 @@ namespace ASM_3D
             swAssy.EditAssembly();
 
             string path;
-            path = "D:\\PDMПрочие изделия\\ЭРИ";
+            path = "D:\\PDM\\Прочие изделия\\ЭРИ";
             List<string> allFoundFiles = new List<string>(Directory.GetFiles(path, "*.SLD*", SearchOption.AllDirectories));
             Dictionary<string, string> empty = new Dictionary<string, string>();
 
+            string sample;
             foreach (Component comp in board.components)
             {
-                comp.fileName = allFoundFiles.Find(item => item.Contains(comp.title));
+                sample = comp.title;
+                comp.fileName = allFoundFiles.Find(item => item.Contains(sample));
                 if (String.IsNullOrWhiteSpace(comp.fileName))
                 { 
                     comp.fileName = "D:\\PDM\\Прочие изделия\\ЭРИ\\Zero.SLDPRT"; 
-                   if( !empty.ContainsKey(comp.title)) { empty.Add(comp.title, comp.title); }
+                   if( !empty.ContainsKey(sample)) { empty.Add(sample, sample); }
                 }
             }
           
