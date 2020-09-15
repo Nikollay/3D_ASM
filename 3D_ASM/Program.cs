@@ -17,8 +17,8 @@ namespace ASM_3D
               
             Board board;
             string filename;
-            Board.GetXML2("d:\\Домашняя работа\\ПАКБ.468179.801_2.xml");
-            Console.ReadKey();
+            //Console.WriteLine(Board.GetXML("d:\\Домашняя работа\\ПАКБ.468179.801_2.xml"));
+            //Console.ReadKey();
 
             //SolidWorks
             Console.WriteLine("Подключение к SldWorks.Application");
@@ -100,17 +100,19 @@ namespace ASM_3D
             swAssy.ShowComponent();
             swModel.ClearSelection2(true);
             swAssy.EditAssembly();
-           
-            List<string> allFoundFiles = new List<string>(Directory.GetFiles("D:\\PDM\\Прочие изделия\\ЭРИ", "*.*", SearchOption.AllDirectories));
+
+            string path;
+            path = "D:\\PDMПрочие изделия\\ЭРИ";
+            List<string> allFoundFiles = new List<string>(Directory.GetFiles(path, "*.SLD*", SearchOption.AllDirectories));
             Dictionary<string, string> empty = new Dictionary<string, string>();
 
             foreach (Component comp in board.components)
             {
-                comp.fileName = allFoundFiles.Find(item => item.Contains(comp.part_Number));
+                comp.fileName = allFoundFiles.Find(item => item.Contains(comp.title));
                 if (String.IsNullOrWhiteSpace(comp.fileName))
                 { 
                     comp.fileName = "D:\\PDM\\Прочие изделия\\ЭРИ\\Zero.SLDPRT"; 
-                   if( !empty.ContainsKey(comp.part_Number)) { empty.Add(comp.part_Number, comp.part_Number); }
+                   if( !empty.ContainsKey(comp.title)) { empty.Add(comp.title, comp.title); }
                 }
             }
           

@@ -14,7 +14,10 @@ namespace ASM_3D
         public List<Object> sketh, cutout;
 
         public double thickness;
-             
+
+        //delegate XDocument GXML(string filename);
+        //GXML GetXML;
+
         public static Board GetfromXML(string filename)
         {
             XDocument doc=GetXML(filename);
@@ -28,7 +31,22 @@ namespace ASM_3D
             }
             return board;
         }
-        private static XDocument GetXML(string filename)
+        public static XDocument GetXML(string filename)
+        {
+            XDocument doc = XDocument.Load(filename);
+            XElement element = (XElement)doc.Root.FirstNode;
+            switch (element.Name.ToString())
+            {
+                case "transactions":
+                    return GetXML1(filename);
+                case "transaction":
+                    return GetXML2(filename);
+                default:
+                    return null;
+            }
+ 
+        }
+        private static XDocument GetXML1(string filename)
         {
             XAttribute a1, a2;
             XDocument doc_out, doc = XDocument.Load(filename);
@@ -57,7 +75,7 @@ namespace ASM_3D
             //doc_out.Save("d:\\1\\test.xml");
             return doc_out;
         }
-        public static XDocument GetXML2(string filename)
+        private static XDocument GetXML2(string filename)
         {
             string descriptionPCB = "";
             string comnpName = "";
@@ -69,7 +87,7 @@ namespace ASM_3D
             XML = new XElement("XML");
             doc_out.Add(XML);
             elements = doc.Root.Element("transaction").Element("project").Element("configurations").Element("configuration").Element("graphs").Elements();
-            tmpXEl = elements.First(item => item.Attribute("name").Value.Equals("Обозначение PCB"));
+            tmpXEl = elements.First(item => item.Attribute("name").Value.Equals("Обозначение_PCB"));
             descriptionPCB = tmpXEl.Attribute("value").Value;
             componentXML = new XElement("componentXML", new XAttribute("AD_ID", descriptionPCB));
             elements = doc.Root.Element("transaction").Element("project").Element("configurations").Element("configuration").Element("componentsPCB").Element("component_pcb").Element("properties").Elements();
@@ -82,7 +100,6 @@ namespace ASM_3D
                     componentXML.Add(atribute);
             }
             XML.Add(componentXML);
-            Console.WriteLine(doc_out);
             elements = doc.Root.Element("transaction").Element("project").Element("configurations").Element("configuration").Element("components").Elements();
             foreach (XElement e in elements)
             {
@@ -97,8 +114,8 @@ namespace ASM_3D
                 }
                 XML.Add(componentXML);
             }
-            Console.WriteLine("doc_out");
-            Console.WriteLine(doc_out);
+            //Console.WriteLine("doc_out");
+            //Console.WriteLine(doc_out);
             //doc_out.Save("d:\\1\\test.xml");
             return doc_out;
         }
@@ -111,6 +128,9 @@ namespace ASM_3D
                 switch (e.Attribute("name").Value)
                 {
                     case "DM_PhysicalDesignator":
+                        component.physicalDesignator = e.Attribute("value").Value;
+                        break;
+                    case "Позиционное обозначение":
                         component.physicalDesignator = e.Attribute("value").Value;
                         break;
                     case "Наименование":
