@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 using System.Windows.Forms;
 using System.Linq;
+using System.IO;
 
 namespace ASM_3D
 {
@@ -275,10 +276,11 @@ namespace ASM_3D
             Console.WriteLine(filename);
             return filename;
         }
-        private static XDocument GetBRD()
+        private static XDocument GetBRD(string filename)
         {
-            //List<string> list = new List<string>(line);
+
             //string[] line = File.ReadAllLines(filename, System.Text.Encoding.GetEncoding(1251));
+            //List<string> list = new List<string>(line);
             //int board_outline_start = 0, drilled_holes_start = 0, placement_start = 0, board_outline_end = 0, drilled_holes_end = 0, placement_end = 0;
 
             //List<string> board_outline;
@@ -363,11 +365,11 @@ namespace ASM_3D
             //}
             //Console.ReadKey();
 
-            //Эскизы
+            ////Эскизы
             //for (int i = 1; i < board.point.Count; i++)
-            {
-               //swModel.SketchManager.CreateLine(board.point[i - 1].x, board.point[i - 1].y, 0, board.point[i].x, board.point[i].y, 0);
-           }
+            //{
+            //    swModel.SketchManager.CreateLine(board.point[i - 1].x, board.point[i - 1].y, 0, board.point[i].x, board.point[i].y, 0);
+            //}
             //swModel.FeatureManager.FeatureExtrusion3(true, false, false, 0, 0, board.thickness, board.thickness, false, false, false, false, 0, 0, false, false, false, false, true, true, true, 0, 0, false);
             //swModel.ClearSelection2(true);
 
@@ -398,7 +400,7 @@ namespace ASM_3D
             //for (int i = 0; i < drilled_holes.Count; i++) { Console.WriteLine(drilled_holes[i]); }
             //for (int i = 0; i < placement.Count; i++) { Console.WriteLine(placement[i]); }
 
-            // Console.ReadKey();
+            //Console.ReadKey();
             return new XDocument();
         }
     }

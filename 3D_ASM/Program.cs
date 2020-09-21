@@ -24,6 +24,8 @@ namespace ASM_3D
             Console.WriteLine("Подключение к SldWorks.Application");
             var progId = "SldWorks.Application.27";
             var progType = System.Type.GetTypeFromProgID(progId);
+            Console.WriteLine(progType);
+            Console.ReadKey();
             var swApp = System.Activator.CreateInstance(progType) as ISldWorks;
             swApp.Visible = true;
             Console.WriteLine("Успешное подключение к версии SldWorks.Application " + swApp.RevisionNumber());
@@ -66,7 +68,7 @@ namespace ASM_3D
             do
             {
                 swRefPlaneFeat = (Feature)swCompModel.FeatureByPositionReverse(j);
-                j = j + 1;
+                j ++;
             }
             while (swRefPlaneFeat.Name != "Спереди");
 
